@@ -1,56 +1,49 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: lcosson <lcosson@student.42.fr>            +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2026/04/27 14:10:35 by lcosson           #+#    #+#              #
-#    Updated: 2026/04/27 14:10:54 by lcosson          ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
+# Variable to store the docker-compose command with the specific path to the YML file
+# Using 'docker compose' (V2) instead of the older 'docker-compose'
+DOCKER_COMPOSE := docker compose -f srcs/docker-compose.yml
 
-NAME		= inception
-LOGIN		= lcosson
+# -----------------
+# CORE COMMANDS
+# -----------------
 
-COMPOSE		= docker compose -f srcs/docker-compose.yml
-DATA_DIR	= /home/$(LOGIN)/data
-WP_DIR		= $(DATA_DIR)/wordpress
-DB_DIR		= $(DATA_DIR)/mariadb
-
+# Default target: executes the 'up' rule
 all: up
 
-prepare:
-	mkdir -p $(WP_DIR)
-	mkdir -p $(DB_DIR)
+# 'up' rule: prepares the environment and launches the containers
+up:
+	# Create physical host directories for persistent data volumes
+	# $(USER) ensures the paths are correct regardless of the current 42 session
+	@echo "Checking and creating volume directories in /home/$(USER)/data/..."
+	@mkdir -p /home/$(USER)/data/mariadb
+	@mkdir -p /home/$(USER)/data/wordpress
+	
+	# Build images if they don't exist and start containers in detached mode (-d)
+	# --build ensures images are updated if Dockerfiles or configs changed
+	$(DOCKER_COMPOSE) up -d --build
 
-up: prepare
-	$(COMPOSE) up --build
-
+# 'down' rule: stops and removes containers and networks
+# Note: This keeps the volumes (data) intact for persistence
 down:
-	$(COMPOSE) down
+	$(DOCKER_COMPOSE) down
 
 stop:
-	$(COMPOSE) stop
+	$(DOCKER_COMPOSE) stop
 
 start:
-	$(COMPOSE) start
-
-restart: down up
-
-logs:
-	$(COMPOSE) logs -f
-
-ps:
-	$(COMPOSE) ps
-
-clean:
-	$(COMPOSE) down
+	$(DOCKER_COMPOSE) start
 
 fclean:
-	$(COMPOSE) down -v --rmi all --remove-orphans
-	rm -rf $(DATA_DIR)
+	@echo "Stopping containers and removing images/volumes..."
+	$(DOCKER_COMPOSE) down --rmi all -v
+	@echo "Removing physical data..."
+	sudo rm -rf /home/$(USER)/data/mariadb/*
+	sudo rm -rf /home/$(USER)/data/wordpress/*
+	@# Cleanup dangling images to save space
+	@if [ -n "$$(docker images -f "dangling=true" -q)" ]; then \
+		docker rmi $$(docker images -f "dangling=true" -q); \
+	fi
 
-re: fclean all
+# 're' rule: full restart cycle without deleting permanent data
+re: down up
 
-.PHONY: all prepare up down stop start restart logs ps clean fclean re
+.PHONY: all up down fclean re start stop
