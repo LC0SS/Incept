@@ -2,6 +2,8 @@
 
 set -e
 
+WP_ADMIN_PASSWORD=$(cat /run/secrets/wp_admin_password)
+WP_USER_PASSWORD=$(cat /run/secrets/wp_user_password)
 MYSQL_PASSWORD=$(cat /run/secrets/db_password)
 
 echo "Checking WordPress files..."
