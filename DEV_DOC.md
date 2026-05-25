@@ -1,3 +1,5 @@
+_This project has been created as part of the 42 curriculum by lcosson._
+
 # Developer Documentation - Inception
 
 This document describes the technical architecture and setup for developers.

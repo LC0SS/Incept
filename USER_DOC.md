@@ -1,3 +1,5 @@
+_This project has been created as part of the 42 curriculum by lcosson._
+
 # User Documentation - Inception
 
 This document explains how to interact with and manage the Inception services.
