@@ -14,7 +14,7 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
-      - inception_network
+      - inception
 
   wordpress:
     build: ./requirements/wordpress
@@ -41,7 +41,7 @@ services:
     volumes:
       - wordpress_data:/var/www/html
     networks:
-      - inception_network
+      - inception
 
   nginx:
     build: ./requirements/nginx
@@ -54,10 +54,11 @@ services:
     volumes:
       - wordpress_data:/var/www/html
     networks:
-      - inception_network
+      - inception
 
 networks:
   inception:
+    name: inception
     driver: bridge
 
 volumes:
